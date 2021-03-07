@@ -1,5 +1,6 @@
 import random as rnd
-
+import arabic_reshaper # pip install arabic_reshaper
+from bidi.algorithm import get_display
 from PIL import Image, ImageColor, ImageFont, ImageDraw, ImageFilter
 
 
@@ -88,24 +89,11 @@ def _generate_horizontal_text(
         rnd.randint(min(stroke_c1[1], stroke_c2[1]), max(stroke_c1[1], stroke_c2[1])),
         rnd.randint(min(stroke_c1[2], stroke_c2[2]), max(stroke_c1[2], stroke_c2[2])),
     )
-
-    for i, p in enumerate(splitted_text):
-        txt_img_draw.text(
-            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), 0),
-            p,
-            fill=fill,
-            font=image_font,
-            stroke_width=stroke_width,
-            stroke_fill=stroke_fill,
-        )
-        txt_mask_draw.text(
-            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), 0),
-            p,
-            fill=((i + 1) // (255 * 255), (i + 1) // 255, (i + 1) % 255),
-            font=image_font,
-            stroke_width=stroke_width,
-            stroke_fill=stroke_fill,
-        )
+    
+    reshaped_p = arabic_reshaper.reshape(text)
+    text = get_display(reshaped_p)
+    txt_img_draw.multiline_text((0,0),text,font=image_font,fill='black', stroke_width=stroke_width,stroke_fill=stroke_fill)
+    txt_mask_draw.multiline_text((0,0),text,font=image_font,fill='black', stroke_width=stroke_width,stroke_fill=stroke_fill)
 
     if fit:
         return txt_img.crop(txt_img.getbbox()), txt_mask.crop(txt_img.getbbox())
